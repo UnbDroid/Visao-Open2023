@@ -89,9 +89,9 @@ def predict_cube(cap, model):
         name = max(good_results, key=good_results.get)
     # cv2.imshow("foto", frame)
     random_name = random_hex_name()
-    save_path = os.path.join("images_predict", f"{random_name}.png")
+    save_path = os.path.join("..","images_predict", f"{random_name}.png")
     cv2.imwrite(save_path, frame)
-    save_path = os.path.join("images_no_predict", f"{random_name}.png")
+    save_path = os.path.join("..","images_no_predict", f"{random_name}.png")
     cv2.imwrite(save_path, original_frame)
 
     # cv2.waitKey(0)
