@@ -51,10 +51,35 @@ def return_char(name):
         return 'h'
     if name == 'LETTERI':
         return 'i'
+    else:
+        return '0'
     
-    
-def predict_cube():
-    cap = cv2.VideoCapture(0)
+def predict_cube_loop():
+    cap = cv2.VideoCapture(1)
+    model_path = 'best.pt'
+    model = YOLO(model_path)  # load a custom model
+    threshold = 0.5
+    while True:
+        ret, frame = cap.read()
+
+        results = model(frame)[0]
+        name = None
+        for result in results.boxes.data.tolist():
+            x1, y1, x2, y2, score, class_id = result
+            if score > threshold:
+                name = model.names[int(class_id)].upper()
+                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
+                cv2.putText(frame, "{} {:.2f}".format(name, score), (int(x1), int(y1 - 10)),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
+        cv2.imshow("foto", frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        time.sleep(5)
+    cap.release()
+    cv2.destroyAllWindows()
+    return return_char(name)
+
+def predict_cube(cap, model):
     model_path = 'best.pt'
     model = YOLO(model_path)  # load a custom model
     threshold = 0.5
@@ -62,43 +87,38 @@ def predict_cube():
     ret, frame = cap.read()
 
     results = model(frame)[0]
-
+    name = None
     for result in results.boxes.data.tolist():
         x1, y1, x2, y2, score, class_id = result
         if score > threshold:
             name = model.names[int(class_id)].upper()
-            cap.release()
-            cv2.destroyAllWindows()
-            return return_char(name)
+            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
+            cv2.putText(frame, "{} {:.2f}".format(name, score), (int(x1), int(y1 - 10)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
+    cv2.imshow("foto", frame)
+    cv2.waitKey(0)
+    cap.release()
+    cv2.destroyAllWindows()
+    return return_char(name)
 
 
-# ser = serial.Serial("/dev/ttyACM0", 9600, timeout = 1)
-# ser = serial.Serial("/dev/ttyACM0", 9600, timeout = 1)
-ser = serial.Serial("COM8", 9600, timeout = 1)
-# i = 0
-# response = ser2.read()
-# print(response.decode('utf-8'))
+# predict_cube_loop()
+
+ser = serial.Serial("/dev/ttyACM0", 9600, timeout = 1)
+cap = cv2.VideoCapture(1)
+model_cubes = YOLO('cubes.pt')
+
 
 while True:
     try:
         data = ser.read()
         print(data.decode('utf-8'))
-        if "p" in data.decode('utf-8'):
-            char = predict_cube()
+        if "t" in data.decode('utf-8'):
+            char = predict_cube(cap, model_cubes)
             for i in range(1000):
                 ser.write(char.encode('utf-8'))
+        elif "p":
+            pass
 
     except:
         pass
-    # string = f"{i} Oi sdds\n"
-    # ser.write(string.encode())
-    # i+=1
-    
-    # response = ser2.read()
-    # print(type(response))
-    # print(response.decode('utf-8'))
-    # print("Arduino respondeu: ", )
-    # ser2.write("j".encode('utf-8'))
-    # print("enviei")
-
-ser.close()
