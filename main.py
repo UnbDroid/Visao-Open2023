@@ -6,6 +6,16 @@ import uuid
 from ultralytics import YOLO
 import cv2
 
+def random_hex_name():
+    if not hasattr(random_hex_name, "first_call"):
+        random_hex_name.first_call = int(uuid.uuid4().hex[:8], 16)
+        random_hex_name.counter = 1
+        return hex(random_hex_name.first_call)[2:]
+    else:
+        random_hex_name.counter += 1
+        return hex(random_hex_name.first_call + random_hex_name.counter)[2:]
+
+
 def return_char(name):
     if name == 'RED':
         return 'w'
@@ -55,11 +65,12 @@ def return_char(name):
         return '0'
     
 def predict_cube(cap, model):
-    model_path = 'best.pt'
-    model = YOLO(model_path)  # load a custom model
+
     threshold = 0.5
 
     ret, frame = cap.read()
+
+    original_frame = frame.copy()
 
     results = model(frame)[0]
     name = None
@@ -70,17 +81,21 @@ def predict_cube(cap, model):
             cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
             cv2.putText(frame, "{} {:.2f}".format(name, score), (int(x1), int(y1 - 10)),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
-    cv2.imshow("foto", frame)
-    cv2.waitKey(0)
-    cap.release()
-    cv2.destroyAllWindows()
+    # cv2.imshow("foto", frame)
+    random_name = random_hex_name()
+    save_path = os.path.join("images_predict", f"{random_name}.png")
+    cv2.imwrite(save_path, frame)
+    save_path = os.path.join("images_no_predict", f"{random_name}.png")
+    cv2.imwrite(save_path, original_frame)
+
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     return return_char(name)
 
 
-# predict_cube_loop()
 
 ser = serial.Serial("/dev/ttyACM0", 9600, timeout = 1)
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 model_cubes = YOLO('cubes.pt')
 
 
@@ -90,6 +105,7 @@ while True:
         print(data.decode('utf-8'))
         if "t" in data.decode('utf-8'):
             char = predict_cube(cap, model_cubes)
+            print(char)
             for i in range(1000):
                 ser.write(char.encode('utf-8'))
         elif "p":
