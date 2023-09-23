@@ -105,9 +105,10 @@ model_cubes = YOLO('cubes.pt')
 
 
 
-ser = serial.Serial("/dev/ttyACM0", 9600, timeout = 1)
+
 while True:
     try:
+        ser = serial.Serial("/dev/ttyACM0", 9600, timeout = 1)
         data = ser.read()
         print(data.decode('utf-8'))
         if "t" in data.decode('utf-8'):
@@ -120,3 +121,32 @@ while True:
 
     except:
         pass
+    try:
+        ser = serial.Serial("/dev/ttyACM1", 9600, timeout = 1)
+        data = ser.read()
+        print(data.decode('utf-8'))
+        if "t" in data.decode('utf-8'):
+            char = predict_cube(cap, model_cubes)
+            print(char)
+            for i in range(1000):
+                ser.write(char.encode('utf-8'))
+        elif "p":
+            pass
+
+    except:
+        pass
+    try:
+        ser = serial.Serial("/dev/ttyACM2", 9600, timeout = 1)
+        data = ser.read()
+        print(data.decode('utf-8'))
+        if "t" in data.decode('utf-8'):
+            char = predict_cube(cap, model_cubes)
+            print(char)
+            for i in range(1000):
+                ser.write(char.encode('utf-8'))
+        elif "p":
+            pass
+
+    except:
+        pass
+
