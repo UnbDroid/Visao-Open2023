@@ -54,31 +54,6 @@ def return_char(name):
     else:
         return '0'
     
-def predict_cube_loop():
-    cap = cv2.VideoCapture(1)
-    model_path = 'best.pt'
-    model = YOLO(model_path)  # load a custom model
-    threshold = 0.5
-    while True:
-        ret, frame = cap.read()
-
-        results = model(frame)[0]
-        name = None
-        for result in results.boxes.data.tolist():
-            x1, y1, x2, y2, score, class_id = result
-            if score > threshold:
-                name = model.names[int(class_id)].upper()
-                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
-                cv2.putText(frame, "{} {:.2f}".format(name, score), (int(x1), int(y1 - 10)),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
-        cv2.imshow("foto", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        time.sleep(5)
-    cap.release()
-    cv2.destroyAllWindows()
-    return return_char(name)
-
 def predict_cube(cap, model):
     model_path = 'best.pt'
     model = YOLO(model_path)  # load a custom model
