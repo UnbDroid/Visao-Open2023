@@ -98,57 +98,82 @@ def predict_cube(cap, model):
     # cv2.destroyAllWindows()
     return return_char(name)
 
+def count_cubes(cap, model):
 
+    threshold = 0.5
+
+    ret, frame = cap.read()
+
+    original_frame = frame.copy()
+
+    good_results = 0
+
+    results = model(frame)[0]
+    name = None
+    for result in results.boxes.data.tolist():
+        x1, y1, x2, y2, score, class_id = result
+        if score > threshold:
+            name = model.names[int(class_id)].upper()
+            good_results += 1
+            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
+            cv2.putText(frame, "{} {:.2f}".format(name, score), (int(x1), int(y1 - 10)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
+        
+    
+    if good_results > 9:
+        good_results = 9
+    # cv2.imshow("foto", frame)
+    random_name = random_hex_name()
+    save_path = os.path.join("..","images_predict", f"{random_name}.png")
+    cv2.imwrite(save_path, frame)
+    save_path = os.path.join("..","images_no_predict", f"{random_name}.png")
+    cv2.imwrite(save_path, original_frame)
+
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    return(str(good_results))
+
+
+def do_action(cap, model_cubes, ser):
+    data = ser.read()
+    if "t" in data.decode('utf-8'):
+        print("entrei")
+        c = predict_cube(cap, model_cubes)
+        print(c)
+        for i in range(1000):
+            ser.write(c.encode('utf-8'))
+    
+    elif "p" in data.decode('utf-8'):
+        pass
+
+    elif "k" in data.decode('utf-8'):
+        print("entrei contando")
+        c = count_cubes(cap, model_cubes)
+        print(c)
+        for i in range(1000):
+            ser.write(c.encode('utf-8'))
+        
 
 cap = cv2.VideoCapture(0)
 model_cubes = YOLO('cubes.pt')
 
-
-
-
+h
 while True:
     try:
         ser = serial.Serial("/dev/ttyACM0", 9600, timeout = 1)
-        data = ser.read()
-        # print(data.decode('utf-8'))
-        if "t" in data.decode('utf-8'):
-            print("entrei")
-            char = predict_cube(cap, model_cubes)
-            print(char)
-            for i in range(1000):
-                ser.write(char.encode('utf-8'))
-        elif "p":
-            pass
-
+        do_action(cap, model_cubes, ser)
     except:
         pass
+
     try:
         ser = serial.Serial("/dev/ttyACM1", 9600, timeout = 1)
-        data = ser.read()
-        # print(data.decode('utf-8'))
-        if "t" in data.decode('utf-8'):
-            print("entrei")
-            char = predict_cube(cap, model_cubes)
-            print(char)
-            for i in range(1000):
-                ser.write(char.encode('utf-8'))
-        elif "p":
-            pass
-
+        do_action(cap, model_cubes, ser)
     except:
         pass
+
     try:
         ser = serial.Serial("/dev/ttyACM2", 9600, timeout = 1)
-        data = ser.read()
-        # print(data.decode('utf-8'))
-        if "t" in data.decode('utf-8'):
-            print("entrei")
-            char = predict_cube(cap, model_cubes)
-            print(char)
-            for i in range(1000):
-                ser.write(char.encode('utf-8'))
-        elif "p":
-            pass
+        do_action(cap, model_cubes, ser)
 
     except:
         pass
