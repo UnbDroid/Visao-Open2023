@@ -157,24 +157,13 @@ def do_action(cap, model_cubes, ser):
 cap = cv2.VideoCapture(0)
 model_cubes = YOLO('cubes.pt')
 
-h
+ports_list = ['ACM0', 'ACM1', 'ACM2', 'USB0', 'USB1']
 while True:
-    try:
-        ser = serial.Serial("/dev/ttyACM0", 9600, timeout = 1)
-        do_action(cap, model_cubes, ser)
-    except:
-        pass
+    for port in ports_list:
+        try:
+            ser = serial.Serial("/dev/tty" + port, 9600, timeout = 1)
+            do_action(cap, model_cubes, ser)
+        except:
+            pass
 
-    try:
-        ser = serial.Serial("/dev/ttyACM1", 9600, timeout = 1)
-        do_action(cap, model_cubes, ser)
-    except:
-        pass
-
-    try:
-        ser = serial.Serial("/dev/ttyACM2", 9600, timeout = 1)
-        do_action(cap, model_cubes, ser)
-
-    except:
-        pass
-
+   
