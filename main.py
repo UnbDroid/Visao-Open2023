@@ -80,22 +80,25 @@ def predict_cube(cap, model):
         x1, y1, x2, y2, score, class_id = result
         if score > threshold:
             name = model.names[int(class_id)].upper()
-            good_results[name] = y2
+            if x1 > 50 and x2 < 550:
+                good_results[name] = y2
             cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
             cv2.putText(frame, "{} {:.2f}".format(name, score), (int(x1), int(y1 - 10)),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
         
     if good_results:
         name = max(good_results, key=good_results.get)
-    # cv2.imshow("foto", frame)
+    cv2.putText(frame, f"Eu vejo {name}", (50, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.3, (255, 255, 0), 3, cv2.LINE_AA)
+    cv2.imshow("foto", frame)
     random_name = random_hex_name()
     save_path = os.path.join("..","images_predict", f"{random_name}.png")
     cv2.imwrite(save_path, frame)
     save_path = os.path.join("..","images_no_predict", f"{random_name}.png")
     cv2.imwrite(save_path, original_frame)
 
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     return return_char(name)
 
 def count_cubes(cap, model):
@@ -114,7 +117,8 @@ def count_cubes(cap, model):
         x1, y1, x2, y2, score, class_id = result
         if score > threshold:
             name = model.names[int(class_id)].upper()
-            good_results += 1
+            if y2 > 300:
+                good_results += 1
             cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
             cv2.putText(frame, "{} {:.2f}".format(name, score), (int(x1), int(y1 - 10)),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
@@ -122,6 +126,9 @@ def count_cubes(cap, model):
     
     if good_results > 9:
         good_results = 9
+    
+    cv2.putText(frame, f"Eu vejo {good_results} cubos", (50, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.3, (255, 255, 0), 3, cv2.LINE_AA)
     # cv2.imshow("foto", frame)
     random_name = random_hex_name()
     save_path = os.path.join("..","images_predict", f"{random_name}.png")
@@ -154,8 +161,11 @@ def do_action(cap, model_cubes, ser):
             ser.write(c.encode('utf-8'))
         
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 model_cubes = YOLO('cubes.pt')
+
+while True:
+    predict_cube(cap, model_cubes)
 
 ports_list = ['ACM0', 'ACM1', 'ACM2', 'USB0', 'USB1']
 while True:
