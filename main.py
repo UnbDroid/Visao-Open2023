@@ -90,15 +90,15 @@ def predict_cube(cap, model):
         name = max(good_results, key=good_results.get)
     cv2.putText(frame, f"Eu vejo {name}", (50, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.3, (255, 255, 0), 3, cv2.LINE_AA)
-    cv2.imshow("foto", frame)
+    # cv2.imshow("foto", frame)
     random_name = random_hex_name()
     save_path = os.path.join("..","images_predict", f"{random_name}.png")
     cv2.imwrite(save_path, frame)
     save_path = os.path.join("..","images_no_predict", f"{random_name}.png")
     cv2.imwrite(save_path, original_frame)
 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     return return_char(name)
 
 def count_cubes(cap, model):
@@ -146,7 +146,7 @@ def do_action(cap, model_cubes, ser):
     if "t" in data.decode('utf-8'):
         print("entrei")
         c = predict_cube(cap, model_cubes)
-        print(c)
+        print(c)    
         for i in range(1000):
             ser.write(c.encode('utf-8'))
     
@@ -161,18 +161,23 @@ def do_action(cap, model_cubes, ser):
             ser.write(c.encode('utf-8'))
         
 
-cap = cv2.VideoCapture(1)
-model_cubes = YOLO('cubes.pt')
+i = 0
+for i in range(10):
+    cap = cv2.VideoCapture(i)
+    if cap.isOpened():
+        break
 
-while True:
-    predict_cube(cap, model_cubes)
+model_cubes = YOLO('/home/droid/Documentos/Visao-Open2023/cubes2.pt')
+print('sai')
 
 ports_list = ['ACM0', 'ACM1', 'ACM2', 'USB0', 'USB1']
 while True:
     for port in ports_list:
         try:
             ser = serial.Serial("/dev/tty" + port, 9600, timeout = 1)
-            do_action(cap, model_cubes, ser)
+            while True:
+                do_action(cap, model_cubes, ser)
+                print('sai')
         except:
             pass
 
