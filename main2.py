@@ -168,22 +168,24 @@ for i in range(10):
     if cap.isOpened():
         break
 
-model_cubes = YOLO('/home/droid/Documentos/Visao-Open2023/cubes2.pt')
+# model_cubes = YOLO('/home/droid/Documentos/Visao-Open2023/cubes2.pt')
+model_cubes = 'cubes2.pt'
 print('sai')
 
-ports_list = list_ports.comports()
 
-print(ports_list[0][0])
+
+
 while True:
+    ports_list = list(list_ports.comports())
     for port in ports_list:
-        try:
-            print(port[0])
-            ser = serial.Serial(port[0], 9600)
-            while ser.is_open:
-                do_action(cap, model_cubes, ser)
-                print('sai')
-            # print('sai')
-        except:
-            pass
+        if "Arduino" in port.description:
+            try:
+                ser = serial.Serial(port.device, 9600)
+                while True:
+                    do_action(cap, model_cubes, ser)
+                    print('sai')
+                print(ser.is_open)
+            except:
+                pass
 
    
